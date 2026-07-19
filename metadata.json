@@ -1,0 +1,6 @@
+{
+  "name": "Comidar pidaVen",
+  "description": "Plataforma de delivery premium en Venezuela con biometría, seguridad avanzada y diseño glassmorphic de alta fidelidad.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
