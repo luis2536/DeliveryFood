@@ -6,9 +6,11 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
+    name: Build & Package Android Artifacts
     runs-on: ubuntu-latest
 
     steps:
@@ -20,18 +22,34 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Grant Execute Permission for Gradle
-      run: chmod +x gradlew || true
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
 
-    - name: Build with Gradle
-      run: ./gradlew assembleDebug --no-daemon
+    - name: Configure Environment Secrets
+      run: |
+        if [ ! -f .env ]; then
+          cp .env.example .env || echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+        fi
+
+    - name: Build APK (Debug) & AAB (Bundle)
+      run: gradle assembleDebug bundleDebug --no-daemon --stacktrace
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
     - name: Upload Debug APK
-      uses: actions/artifacts/upload@v4
+      uses: actions/upload-artifact@v4
+      if: success()
       with:
         name: app-debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: warn
+
+    - name: Upload Debug AAB (App Bundle)
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: app-debug-aab
+        path: app/build/outputs/bundle/debug/app-debug.aab
+        if-no-files-found: warn
+
